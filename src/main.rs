@@ -38,11 +38,6 @@ impl Default for Config {
 }
 
 const TEMPLATE_FILE_NAME : &'static str = "todo.md";
-// const TEMPLATE : &'static str = r#"- todo
-
-// - notes
-// "#;
-
 
 fn get_template_file(date : DateTime<Local>) -> String {
 format!("
@@ -52,7 +47,6 @@ format!("
 
 - notes", date.day(), date.month(), date.year())
 }
-
 
 fn get_base_dir() -> &'static str {
     if cfg!(target_os = "windows") {
@@ -114,8 +108,6 @@ fn parse_slash<'a>(input : &'a str) -> Result<&'a str, ()> {
 }
 
 fn date_parser(input : &str) -> Result<DateTime<Local>, ()> {
-    println!("{:?}", input);
-
     let (remaining, day) = parse_int(input)?;
     let remaining = parse_slash(remaining)?;
     let (remaining, month) = parse_int(remaining)?;

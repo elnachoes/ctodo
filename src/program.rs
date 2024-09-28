@@ -2,6 +2,7 @@ use std::{
     env::args_os, 
     fs::{read_dir, DirBuilder, File}, 
     io::Write, 
+    io::stdout,
     process::Command
 };
 
@@ -49,9 +50,19 @@ fn check_dir_setup() {
 fn open_date_in_editor(date : DateTime<Local>, editor : &str) {
     check_todo_for_date(date);
     if cfg!(target_os = "windows") {
-        Command::new("cmd").args(["/C".to_string(), format!("{} {}", editor, get_full_path_for_date(date))]).spawn().expect("failed to open in editor");
+        Command::new("cmd")
+            .args(["/C".to_string(), format!("{} {}", editor, get_full_path_for_date(date))])
+            .stdout(stdout())
+            .output()
+            .expect("failed to open in editor");
     } else {
-        Command::new("sh").args(["-c".to_string(), format!("{} {}", editor, get_full_path_for_date(date))]).spawn().expect("failed to open in editor");
+        // Command::new("sh")
+        //     .args(["-c".to_string(), format!("{} {}", editor, get_full_path_for_date(date))])
+        //     .stdin(Stdio::piped())
+        //     .stdout(Stdio::piped())
+        //     .spawn()
+        //     .expect("failed to open in editor")
+        unimplemented!()
     }
 }
 

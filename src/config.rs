@@ -36,6 +36,6 @@ impl Config {
 }
 impl Default for Config {
     fn default() -> Self {
-        Self { editor: "code".to_string() }
+        Self { editor: "hx".to_string() }
     }
 }

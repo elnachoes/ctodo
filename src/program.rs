@@ -1,12 +1,14 @@
+
+use clap::Parser;
+
 use std::{
-    env::args_os, 
     fs::{read_dir, DirBuilder, File}, 
     io::Write, 
     io::stdout,
     process::Command
 };
 
-use chrono::prelude::*;
+use chrono::{prelude::*, TimeDelta};
 
 use crate::{
     get_base_dir,
@@ -55,14 +57,14 @@ fn open_date_in_editor(date : DateTime<Local>, editor : &str) {
             .stdout(stdout())
             .output()
             .expect("failed to open in editor");
+    } else if cfg!(target_os = "linux") {
+        Command::new(editor)
+            .args([format!("{}", get_full_path_for_date(date))])
+            .stdout(stdout())
+            .output()
+            .expect("failed to open in editor");
     } else {
-        // Command::new("sh")
-        //     .args(["-c".to_string(), format!("{} {}", editor, get_full_path_for_date(date))])
-        //     .stdin(Stdio::piped())
-        //     .stdout(Stdio::piped())
-        //     .spawn()
-        //     .expect("failed to open in editor")
-        unimplemented!()
+        unimplemented!("ctodo is not implemented for this os.")        
     }
 }
 
@@ -86,13 +88,47 @@ fn date_parser(input : &str) -> Result<DateTime<Local>, ()> {
     Ok(DateTime::<Local>::from(Local.with_ymd_and_hms(year as i32, month as u32, day as u32, 0, 0, 0).unwrap()))
 }
 
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct RawArgs {
+    #[arg(short, long, default_value_t = false)]
+    yesterday: bool,
+
+    #[arg(short, long, default_value_t = String::default())]
+    date: String,
+
+    #[arg(short, long, default_value_t = String::default())]
+    editor: String,
+}
+#[derive(Default)]
+struct Args {
+    date: DateTime<Local>,
+    editor: String,
+}
+impl Args {
+    pub fn parse_with_config(config : &Config) -> Self {
+        let mut args = Args::default();
+        let raw_args = RawArgs::parse();
+
+        args.editor = if raw_args.editor.is_empty() {
+             config.editor.to_string()
+        } else {
+            raw_args.editor
+        };
+
+        args.date = if raw_args.yesterday {
+            Local::now() - TimeDelta::days(1)
+        } else {
+            date_parser(&raw_args.date).unwrap()
+        };
+        
+        args
+    }
+}
+
 pub fn program() {
     check_dir_setup();
     let config = Config::load();
-    let args : Vec<String> = args_os().map(|arg| arg.into_string().unwrap()).collect();
-
-    let editor = args.iter().skip_while(|arg| *arg != "-e").skip(1).next().or(Some(&config.editor)).unwrap();
-    let date = args.iter().skip_while(|arg| *arg != "-d").skip(1).next().map_or(Local::now(),|arg| date_parser(&arg).unwrap());
-
-    open_date_in_editor(date, editor)
+    let args = Args::parse_with_config(&config);
+    open_date_in_editor(args.date, &args.editor)
 }

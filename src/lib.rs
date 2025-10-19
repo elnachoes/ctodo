@@ -10,10 +10,12 @@ pub use template::{
     get_template_file
 };
 
-pub fn get_base_dir() -> &'static str {
+extern crate dirs;
+
+pub fn get_base_dir() -> String {
     if cfg!(target_os = "windows") {
-        "C:/ctodo"
+        "C:/ctodo".to_string()
     } else {
-        "/ctodo"
+        format!("{}/ctodo", dirs::home_dir().unwrap().display())
     }
 }

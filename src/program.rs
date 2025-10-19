@@ -94,6 +94,9 @@ struct RawArgs {
     #[arg(short, long, default_value_t = false)]
     yesterday: bool,
 
+    #[arg(short, long, default_value_t = false)]
+    tommorrow: bool,
+
     #[arg(short, long, default_value_t = String::default())]
     date: String,
 
@@ -118,6 +121,8 @@ impl Args {
 
         args.date = if raw_args.yesterday {
             Local::now() - TimeDelta::days(1)
+        } else if raw_args.tommorrow {
+            Local::now() + TimeDelta::days(1)
         } else {
             date_parser(&raw_args.date).unwrap()
         };

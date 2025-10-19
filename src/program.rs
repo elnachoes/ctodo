@@ -123,6 +123,8 @@ impl Args {
             Local::now() - TimeDelta::days(1)
         } else if raw_args.tommorrow {
             Local::now() + TimeDelta::days(1)
+        } else if raw_args.date.is_empty() {
+            Local::now()
         } else {
             date_parser(&raw_args.date).unwrap()
         };
